@@ -50,6 +50,22 @@ $BLACKLIST = array(
         "http://localhost:9090/test"
 );
 
+$CURL_OPTIONS = array(
+  CURLOPT_SSL_VERIFYPEER => FALSE,
+  // these options are set for hyper-vigilance purposes
+  CURLOPT_COOKIESESSION => 0,
+  CURLOPT_FORBID_REUSE => 1,
+  CURLOPT_FRESH_CONNECT => 0,
+  // Specify NIC to use for outgoing connection, fixes firewall+DMZ headaches
+  // CURLOPT_INTERFACE => "XXX.XXX.XXX.XXX",
+  // other options
+  CURLOPT_RETURNTRANSFER => 1,
+  CURLOPT_CONNECTTIMEOUT => 900,
+  // data to proxy thru
+  CURLOPT_POST => 1,
+  CURLOPT_POSTFIELDS => '',
+  CURLOPT_HTTPHEADER => array('Expect:', 'Content-Type: text/xml'));
+
 // There is nothing to configure below this line
 
 $matches = array();
@@ -148,20 +164,10 @@ if ($PostBody=="") {
         // open the URL and forward the new XML in the POST body
         $proxyRequest = curl_init($pmURL);
 
-        // these options are set for hyper-vigilance purposes
-        curl_setopt($proxyRequest, CURLOPT_COOKIESESSION, 0);
-        curl_setopt($proxyRequest, CURLOPT_FORBID_REUSE, 1);
-        curl_setopt($proxyRequest, CURLOPT_FRESH_CONNECT, 0);
-        // Specify NIC to use for outgoing connection, fixes firewall+DMZ headaches
-        // curl_setopt($proxyRequest, CURLOPT_INTERFACE, "XXX.XXX.XXX.XXX");
-        // other options
-        curl_setopt($proxyRequest, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($proxyRequest, CURLOPT_CONNECTTIMEOUT, 900);        // wait 15 minutes
-        // data to proxy thru
-        curl_setopt($proxyRequest, CURLOPT_POST, 1);
-        curl_setopt($proxyRequest, CURLOPT_POSTFIELDS, $checkPMXML);
+        $CURL_OPTIONS[CURLOPT_POSTFIELDS] = $checkPMXML;
+        curl_setopt_array($proxyRequest, $CURL_OPTIONS);
+
         // SEND REQUEST!!!
-        curl_setopt($proxyRequest, CURLOPT_HTTPHEADER, array('Expect:', 'Content-Type: text/xml'));
         $proxyResult = curl_exec($proxyRequest);
         // cleanup cURL connection
         curl_close($proxyRequest);
@@ -180,22 +186,11 @@ if ($PostBody=="") {
 
 	// open the URL and forward the new XML in the POST body
 	$proxyRequest = curl_init($proxyURL);
-	
-	curl_setopt($proxyRequest, CURLOPT_SSL_VERIFYPEER, FALSE);
-	// these options are set for hyper-vigilance purposes
-	curl_setopt($proxyRequest, CURLOPT_COOKIESESSION, 0);
-	curl_setopt($proxyRequest, CURLOPT_FORBID_REUSE, 1);
-	curl_setopt($proxyRequest, CURLOPT_FRESH_CONNECT, 0);
-	// Specify NIC to use for outgoing connection, fixes firewall+DMZ headaches
-	// curl_setopt($proxyRequest, CURLOPT_INTERFACE, "XXX.XXX.XXX.XXX");  
-	// other options
-	curl_setopt($proxyRequest, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($proxyRequest, CURLOPT_CONNECTTIMEOUT, 900); 	// wait 15 minutes
-	// data to proxy thru
-	curl_setopt($proxyRequest, CURLOPT_POST, 1);
-	curl_setopt($proxyRequest, CURLOPT_POSTFIELDS, $newXML);
+
+  $CURL_OPTIONS[CURLOPT_POSTFIELDS] = $newXML;
+  curl_setopt_array($proxyRequest, $CURL_OPTIONS);
+
 	// SEND REQUEST!!!
-	curl_setopt($proxyRequest, CURLOPT_HTTPHEADER, array('Expect:', 'Content-Type: text/xml'));
 	$proxyResult = curl_exec($proxyRequest);
 	// cleanup cURL connection
 	curl_close($proxyRequest);
